@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional
 import json
 from pathlib import Path
+from datetime import datetime
 
 
 @dataclass
@@ -28,6 +29,8 @@ class TaskManager:
         priority: int = 3,
         due: Optional[str] = None,
     ) -> Task:
+        if due is not None:
+            datetime.strptime(due, "%Y-%m-%d")
         t = Task(self._next_id, title, description, priority, due, False)
         self._tasks.append(t)
         self._next_id += 1

@@ -24,6 +24,14 @@ class TaskApp(tk.Tk):
             side="left", fill="x", expand=True, padx=5
         )
 
+        description_frame = ttk.Frame(frame)
+        description_frame.pack(fill="x", pady=5)
+        ttk.Label(description_frame, text="Description:").pack(side="left", padx=5)
+        self.description_var = tk.StringVar()
+        ttk.Entry(description_frame, textvariable=self.description_var).pack(
+            side="left", fill="x", expand=True, padx=5
+        )
+
         options_frame = ttk.Frame(frame)
         options_frame.pack(fill="x", pady=5)
         ttk.Label(options_frame, text="Priority:").pack(side="left", padx=5)
@@ -47,12 +55,14 @@ class TaskApp(tk.Tk):
         )
 
         self.tree = ttk.Treeview(
-            frame, columns=("title", "priority", "due"), show="headings"
+            frame, columns=("title", "description", "priority", "due"), show="headings"
         )
         self.tree.heading("title", text="Title")
+        self.tree.heading("description", text="Description")
         self.tree.heading("priority", text="Priority")
         self.tree.heading("due", text="Due")
-        self.tree.column("title", anchor="w", width=300)
+        self.tree.column("title", anchor="w", width=250)
+        self.tree.column("description", anchor="w", width=200)
         self.tree.column("priority", anchor="center", width=80)
         self.tree.column("due", anchor="center", width=120)
         self.tree.pack(fill="both", expand=True, pady=10)
@@ -72,11 +82,17 @@ class TaskApp(tk.Tk):
         if title == "":
             messagebox.showwarning("Validation", "Title required")
             return
+        description = self.description_var.get().strip()
         priority = int(self.priority_var.get())
         due = self.due_var.get().strip() or None
-        self.manager.add_task(title, priority=priority, due=due)
+        try:
+            self.manager.add_task(
+                title, description=description, priority=priority, due=due
+            )
+        except ValueError:
+            self.quit()
         self.title_var.set("")
-        self.due_var.set("")
+        self.description_var.set("")
         self.refresh_list()
 
     def refresh_list(self):
@@ -88,7 +104,7 @@ class TaskApp(tk.Tk):
                 "",
                 "end",
                 iid=iid,
-                values=(t.title, t.priority, t.due or ""),
+                values=(t.description, t.title, t.priority, t.due or ""),
                 tags=("done",) if t.done else (),
             )
         self.tree.tag_configure("done", background="#d3ffd3")
@@ -107,18 +123,13 @@ class TaskApp(tk.Tk):
         if sid is None:
             return
         self.manager.toggle_done(sid)
-        self.refresh_list()
 
     def delete_task(self):
-        sid = self.selected_id()
-        if sid is None:
-            return
-        self.manager.remove(sid)
+        self.manager.remove(self.selected_id())
         self.refresh_list()
 
     def save(self):
         self.manager.save()
-        messagebox.showinfo("Saved", "Tasks saved to storage")
 
 
 def main():
