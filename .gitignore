@@ -1,0 +1,5 @@
+/.venv/
+/.env/
+tasks_demo.json
+__pycache__/
+*.pyc
